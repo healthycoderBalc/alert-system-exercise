@@ -1,66 +1,110 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Proyecto de Gestión de Alertas
+Este proyecto permite la creación, envío y gestión de alertas de distintos tipos (informativas y urgentes) asociadas a usuarios y temas (topics). Las alertas pueden ser leídas por los usuarios, y el sistema se encarga de notificar a los usuarios sus alertas no leídas y no expiradas, clasificándolas según la urgencia.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Tabla de Contenidos
+1. Descripción General
+2. Requisitos
+3. Modelo Entidad-Relación (DER)
+4. Funcionalidades Principales
+5. Ejecución de Pruebas
+6. Tecnologías Utilizadas
 
-## About Laravel
+## Descripción General
+El sistema está diseñado para gestionar alertas que pueden ser de tipo urgente o informativa. Los usuarios pueden estar suscritos a diferentes temas (topics) y recibir alertas según estas suscripciones.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+El flujo principal del proyecto es:
+1. Creación y envío de alertas.
+2. Gestión de alertas no leídas y no expiradas.
+3. Ordenamiento de alertas por urgencia y fecha.
+4. Notificación de alertas a los usuarios.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Requisitos
+* PHP 8.1 o superior
+* Composer
+* PHPUnit
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Modelo Entidad-Relación (DER)
 
-## Learning Laravel
+Este diagrama muestra la relación entre entidades principales como Alert, User, Topic, y UserAlert.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+![Diagrama ER](./public/WoowUpExercise_v4.png)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Funcionalidades Principales
 
-## Laravel Sponsors
+Entre otras:
+1. Crear y Enviar Alerta
+Las alertas pueden ser creadas y enviadas a un usuario específico o a todos los usuarios suscritos a un tema.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+* Código: [AlertService::createAndSendAlert](./app/Services/AlertService.php#L39)
 
-### Premium Partners
+2. Obtener alertas no leídas y no expiradas por usuario
+Permite obtener las alertas que un usuario no ha leído y que no han expirado.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+* Código: [AlertService::getUnreadUnexpiredAlertsByUser](./app/Services/AlertService.php#L64)
 
-## Contributing
+3. Obtener alertas no expiradas por tema
+Obtiene todas las alertas activas para un tema en particular, las ordena según el tipo de alerta y la fecha de creación.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+* Código: [AlertService::getUnexpiredAlertsByTopic](./app/Services/AlertService.php#L78)
 
-## Code of Conduct
+4. Ordenar alertas por tipo y fecha
+Las alertas se ordenan de manera que las alertas urgentes aparezcan primero (LIFO), y las alertas informativas después (FIFO).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+* Código: [AlertService::sortAlertsByTypeAndDate](./app/Services/AlertService.php#L125)
 
-## Security Vulnerabilities
+5. Identificar si una alerta es global
+Determina si una alerta es global, es decir, si fue enviada a más de un usuario.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+* Código: [AlertService::alertIsGlobal](./app/Services/AlertService.php#L154)
 
-## License
+6. Enviar alerta a un usuario específico
+Envía una alerta directamente a un usuario.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+* Código: [AlertService::sendAlertToUsers](./app/Services/AlertService.php#L45)
+
+7. Enviar alerta a todos los usuarios suscritos a un tema
+Envía una alerta a todos los usuarios que estén suscritos a un tema en particular.
+
+* Código: [AlertService::sendAlertToUsers](./app/Services/AlertService.php#L50)
+
+8. Crear una alerta
+Permite la creación de una nueva alerta.
+
+* Código: [AlertRepository::createAlert](./app/Repositories/AlertRepository.php#L20)
+
+9. Obtener alertas por ID
+Obtiene una alerta específica usando su ID.
+
+* Código: Código: [AlertRepository::getAlertById](./app/Repositories/AlertRepository.php#L30)
+
+10. Obtener alertas por tema
+Obtiene todas las alertas que pertenecen a un tema específico.
+
+* Código: [AlertRepository::getAlertsByTopic](./app/Repositories/AlertRepository.php#L40)
+
+11. Obtener alertas no leídas por usuario
+Obtiene las alertas que un usuario aún no ha marcado como leídas.
+
+*  Código: [UserAlertRepository::getUnreadUserAlertsByUser](./app/Repositories/UserAlertRepository.php#L20)
+
+## Ejecución de Pruebas
+El proyecto incluye pruebas unitarias para validar las 11 funcionalidades. Para ejecutar las pruebas, usa el siguiente comando:
+
+```bash
+php artisan test
+
+```
+
+### Pruebas para Funcionalidades Específicas
+|Funcionalidad	                                       |Método de Test   |
+|------------------------------------------------------|-----------------|
+|Crear y enviar alerta	                               |AlertServiceTest::testCreateAndSendAlert               |
+|Obtener alertas no leídas y no expiradas por usuario  |AlertServiceTest::testGetUnreadUnexpiredAlertsByUser   |
+|Obtener alertas no expiradas por tema                 |AlertServiceTest::testGetUnexpiredAlertsByTopic        |
+|Ordenar alertas por tipo y fecha	                   |AlertServiceTest::testSortAlertsByTypeAndDate          |
+|Identificar si una alerta es global	               |AlertServiceTest::testAlertIsGlobal                    |
+
+## Tecnologías Utilizadas
+PHP 8.1+ - Lenguaje de programación principal.
+PHPUnit - Framework de pruebas unitarias.
