@@ -51,6 +51,6 @@ class AlertRepository implements AlertRepositoryInterface
             return $alert->getTopicId() === $topicId && !$alert->isExpired();
         });
 
-        return array_values($filteredAlerts);
+        return array_values($filteredAlerts) ?: [];
     }
 }

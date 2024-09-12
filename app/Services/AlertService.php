@@ -68,6 +68,7 @@ class AlertService
     {
         $alertsByTopic = $this->alertRepository->getAlertsByTopic($topicId);
         $orderedAlertsByTopic = $this->sortAlertsByTypeAndDate($alertsByTopic);
+
         $result = [];
         foreach ($orderedAlertsByTopic as $alert) {
             $alertId = $alert->getId();
@@ -84,6 +85,10 @@ class AlertService
 
     public function sortAlertsByTypeAndDate($alerts)
     {
+        if (!is_array($alerts)) {
+            return [];
+        }
+
         $urgentAlerts = [];
         $informativeAlerts = [];
 
@@ -112,7 +117,7 @@ class AlertService
     {
         $userAlertsByAlertId = $this->userAlertRepository->getUserAlertsByAlertId($alertId);
 
-        $count = count($userAlertsByAlertId);
+        $count = is_array($userAlertsByAlertId) ? count($userAlertsByAlertId) : 0;
 
         return $count > 1;
     }

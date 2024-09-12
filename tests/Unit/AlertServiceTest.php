@@ -8,10 +8,12 @@ use App\Repositories\Contracts\AlertRepositoryInterface;
 use App\Repositories\Contracts\TopicRepositoryInterface;
 use App\Repositories\Contracts\UserTopicRepositoryInterface;
 use App\Repositories\Contracts\UserAlertRepositoryInterface;
+use App\Repositories\Implementations\UserAlertRepository;
 use App\Models\Alert;
 use App\Models\User;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use DateTime;
 
 class AlertServiceTest extends TestCase
 {
@@ -24,6 +26,7 @@ class AlertServiceTest extends TestCase
 
     protected function setUp(): void
     {
+        parent::setUp();
         $this->userRepositoryMock = $this->createMock(UserRepositoryInterface::class);
         $this->alertRepositoryMock = $this->createMock(AlertRepositoryInterface::class);
         $this->topicRepositoryMock = $this->createMock(TopicRepositoryInterface::class);
@@ -41,7 +44,18 @@ class AlertServiceTest extends TestCase
             $this->userAlertRepositoryMock
                 instanceof UserAlertRepositoryInterface ? $this->userAlertRepositoryMock : null
         );
+
+        $this->clearUserAlerts();
     }
+
+    protected function clearUserAlerts(): void
+    {
+        $reflection = new \ReflectionClass(UserAlertRepository::class);
+        $userTopicsProperty = $reflection->getProperty('userAlerts');
+        $userTopicsProperty->setAccessible(true);
+        $userTopicsProperty->setValue([]);
+    }
+
 
     public function testCreateAndSendAlertToUser()
     {
@@ -173,5 +187,32 @@ class AlertServiceTest extends TestCase
         $this->assertArrayHasKey('alerta', $result[0]);
         $this->assertArrayHasKey('esGlobal', $result[0]);
         $this->assertTrue($result[0]['esGlobal']);
+    }
+
+    public function testSortAlertsByTypeAndDate()
+    {
+        $alert1 = new Alert('I1', '1', Alert::ALERT_TYPE_INFORMATIVE, (new DateTime())->modify('-6 hours'));
+        $alert2 = new Alert('I2', '1', Alert::ALERT_TYPE_INFORMATIVE, (new DateTime())->modify('-5 hours'));
+        $alert3 = new Alert('U1', '1', Alert::ALERT_TYPE_URGENT, (new DateTime())->modify('-4 hours'));
+        $alert4 = new Alert('I3', '1', Alert::ALERT_TYPE_INFORMATIVE, (new DateTime())->modify('-3 hours'));
+        $alert5 = new Alert('U2', '1', Alert::ALERT_TYPE_URGENT, (new DateTime())->modify('-2 hours'));
+        $alert6 = new Alert('I4', '1', Alert::ALERT_TYPE_INFORMATIVE, (new DateTime())->modify('-1 hour'));
+
+        // Unsorted alerts
+        $alerts = [$alert1, $alert2, $alert3, $alert4, $alert5, $alert6];
+
+        $this->alertRepositoryMock->method('getAlertsByTopic')->willReturn($alerts);
+
+        $sortedAlerts = $this->alertService->getUnexpiredAlertsByTopic('1');
+
+        var_dump($sortedAlerts);
+
+        // Verify order
+        $this->assertEquals('U2', $sortedAlerts[0]['alerta']->getDescription());
+        $this->assertEquals('U1', $sortedAlerts[1]['alerta']->getDescription());
+        $this->assertEquals('I1', $sortedAlerts[2]['alerta']->getDescription());
+        $this->assertEquals('I2', $sortedAlerts[3]['alerta']->getDescription());
+        $this->assertEquals('I3', $sortedAlerts[4]['alerta']->getDescription());
+        $this->assertEquals('I4', $sortedAlerts[5]['alerta']->getDescription());
     }
 }

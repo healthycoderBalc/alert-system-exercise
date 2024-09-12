@@ -50,8 +50,9 @@ class UserAlertRepository implements UserAlertRepositoryInterface
 
     public function getUserAlertsByAlertId($alertId)
     {
-        return array_filter(self::$userAlerts, function ($userAlert) use ($alertId) {
+        $userAlerts =  array_filter(self::$userAlerts, function ($userAlert) use ($alertId) {
             return $userAlert->getAlertId() == $alertId;
         });
+        return $userAlerts ?? [];
     }
 }
