@@ -32,7 +32,7 @@ Este diagrama muestra la relación entre entidades principales como Alert, User,
 
 ## Funcionalidades Principales
 
-Entre otras:
+Todas las funcionalidades requeridas en el ejercicio se encuentran en el proyecto. Se listan a continuación solo algunas de las funcionalidades principales:
 1. Crear y Enviar Alerta
 Las alertas pueden ser creadas y enviadas a un usuario específico o a todos los usuarios suscritos a un tema.
 
